@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime
+  email      String   @unique
+  password   String
+  Member     Member[]
+}
+
+model Member {
+  id         Int          @id @default(autoincrement())
+  user_id    Int          @unique
+  user_idRef User         @relation(fields: [user_id], references: [id])
+  name       String
+  created_at DateTime     @default(now())
+  SplitEvent SplitEvent[]
+  Spending   Spending[]
+}
+
+model SpendingCategory {
+  id            Int        @id @default(autoincrement())
+  category_name String
+  colour_code   String
+  Spending      Spending[]
+}
+
+model SplitEvent {
+  id              Int        @id @default(autoincrement())
+  description     String
+  owner           Int
+  ownerRef        Member     @relation(fields: [owner], references: [id])
+  event_date      DateTime
+  last_updated_at DateTime   @updatedAt
+  Spending        Spending[]
+}
+
+model Spending {
+  id                   Int              @id @default(autoincrement())
+  spending_id          Int
+  spending_name        String
+  amount               Float
+  sharer               Int
+  sharerRef            Member           @relation(fields: [sharer], references: [id])
+  spending_category    Int
+  spending_categoryRef SpendingCategory @relation(fields: [spending_category], references: [id])
+  split_event_id       Int
+  split_event_idRef    SplitEvent       @relation(fields: [split_event_id], references: [id])
+}
